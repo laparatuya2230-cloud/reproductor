@@ -1,0 +1,310 @@
+<%- include("../partials/header") %>
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Panel de Control</div>
+    <div class="page-sub">Gestiona reparaciones, inventario, cotizaciones y facturas.</div>
+  </div>
+</div>
+
+<div class="dash-metrics">
+  <div class="dash-mc">
+    <div class="dash-mc-top">
+      <div class="mc-icon"><i class="fa-solid fa-wrench"></i></div>
+      <div class="mc-val"><%= metrics.activeEquipments %></div>
+    </div>
+    <div class="mc-lbl">Activos</div>
+  </div>
+  <div class="dash-mc">
+    <div class="dash-mc-top">
+      <div class="mc-icon"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="mc-val"><%= metrics.repairedPendingPickup %></div>
+    </div>
+    <div class="mc-lbl">Reparados</div>
+  </div>
+  <div class="dash-mc">
+    <div class="dash-mc-top">
+      <div class="mc-icon"><i class="fa-solid fa-box-open"></i></div>
+      <div class="mc-val"><%= metrics.completedDeliveries %></div>
+    </div>
+    <div class="mc-lbl">Entregados</div>
+  </div>
+  <div class="dash-mc">
+    <div class="dash-mc-top">
+      <div class="mc-icon"><i class="fa-solid fa-cubes"></i></div>
+      <div class="mc-val"><%= metrics.inventoryPieces %></div>
+    </div>
+    <div class="mc-lbl">Inventario</div>
+  </div>
+  <div class="dash-mc">
+    <div class="dash-mc-top">
+      <div class="mc-icon"><i class="fa-solid fa-file-invoice"></i></div>
+      <div class="mc-val"><%= metrics.pendingQuotes %></div>
+    </div>
+    <div class="mc-lbl">Cotizaciones</div>
+  </div>
+  <div class="dash-mc">
+    <div class="dash-mc-top">
+      <div class="mc-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+      <div class="mc-val"><%= metrics.unpaidInvoices %></div>
+    </div>
+    <div class="mc-lbl">Sin pago</div>
+  </div>
+  <div class="dash-mc <%= metrics.lowStockParts > 0 ? 'mc-alert' : '' %>">
+    <div class="dash-mc-top">
+      <div class="mc-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <div class="mc-val"><%= metrics.lowStockParts %></div>
+    </div>
+    <div class="mc-lbl">Stock bajo</div>
+  </div>
+  <div class="dash-mc <%= metrics.staleEquipments > 0 ? 'mc-alert' : '' %>">
+    <div class="dash-mc-top">
+      <div class="mc-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+      <div class="mc-val"><%= metrics.staleEquipments %></div>
+    </div>
+    <div class="mc-lbl">Sin movimiento</div>
+  </div>
+</div>
+
+<% if (metrics.lowStockParts > 0) { %>
+  <div class="alert-banner alert-warning">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    <strong><%= metrics.lowStockParts %> pieza<%= metrics.lowStockParts > 1 ? 's' : '' %></strong> con stock bajo.
+    <a href="/admin/inventario" style="color:inherit;font-weight:700;text-decoration:underline;margin-left:6px">Ver inventario &rarr;</a>
+  </div>
+<% } %>
+<% if (metrics.staleEquipments > 0) { %>
+  <div class="alert-banner" style="background:#fff7ed;border-color:#fed7aa;color:#c2410c">
+    <i class="fa-solid fa-hourglass-half"></i>
+    <strong><%= metrics.staleEquipments %> equipo<%= metrics.staleEquipments > 1 ? 's' : '' %></strong> sin actualización en más de 7 días.
+    <a href="/admin/sin-movimiento" style="color:inherit;font-weight:700;text-decoration:underline;margin-left:6px">Ver equipos &rarr;</a>
+  </div>
+<% } %>
+
+<% if (!todaySession) { %>
+  <div class="alert">
+    Caja no abierta hoy. &nbsp;
+    <a href="/admin/caja" style="color:inherit;font-weight:700;text-decoration:underline">Ir a apertura/cierre &rarr;</a>
+  </div>
+<% } else { %>
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Caja del Dia (<%= todayDate %>)</h2>
+      <a class="button" href="/admin/caja">Ver caja</a>
+    </div>
+    <p>
+      <strong>Empleado:</strong> <%= todaySession.employee_name %>
+      &nbsp;&nbsp;|&nbsp;&nbsp;
+      <strong>Apertura:</strong> <%= formatMoney(todaySession.opening_amount) %>
+      &nbsp;&nbsp;|&nbsp;&nbsp;
+      <strong>Estado:</strong>
+      <span class="state-badge <%= todaySession.status === 'cerrada' ? 'done' : '' %>"><%= todaySession.status %></span>
+    </p>
+  </div>
+<% } %>
+
+<div class="dash-charts">
+  <div class="dash-cc">
+    <h3>Equipos por Estado</h3>
+    <div class="dash-cw"><canvas id="cEstados"></canvas></div>
+  </div>
+  <div class="dash-cc">
+    <h3>Distribucion</h3>
+    <div class="dash-cw"><canvas id="cDona"></canvas></div>
+  </div>
+  <div class="dash-cc">
+    <h3>Ingresos Ultimos 6 Meses</h3>
+    <div class="dash-cw"><canvas id="cIngresos"></canvas></div>
+  </div>
+</div>
+
+<div class="dash-charts dash-charts-2">
+  <div class="dash-cc">
+    <h3>Reparaciones por Mes <span class="chart-sub">(últimos 12 meses)</span></h3>
+    <div class="dash-cw"><canvas id="cReparaciones"></canvas></div>
+  </div>
+  <div class="dash-cc">
+    <h3>Marcas más Registradas</h3>
+    <div class="dash-cw"><canvas id="cMarcas"></canvas></div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <h2>Ultimos Equipos Registrados</h2>
+    <a class="button" href="/admin/equipos">Ver todos</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Codigo</th>
+          <th>Cliente</th>
+          <th>Equipo</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (recentEquipments.length === 0) { %>
+          <tr><td colspan="5">Aun no hay equipos registrados.</td></tr>
+        <% } %>
+        <% recentEquipments.forEach(function(item) { %>
+          <tr>
+            <td><strong><%= item.code %></strong></td>
+            <td><%= item.customer_name %></td>
+            <td><%= item.equipment_name %></td>
+            <td><span class="state-badge"><%= item.status %></span></td>
+            <td><%= formatDate(item.received_at) %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  var statusRows      = <%- JSON.stringify(statusRows) %>;
+  var revenueRows     = <%- JSON.stringify(revenueRows) %>;
+  var repairsPerMonth = <%- JSON.stringify(repairsPerMonth) %>;
+  var topBrands       = <%- JSON.stringify(topBrands) %>;
+
+  Chart.defaults.font = { family: "'Barlow Condensed', sans-serif", size: 12 };
+
+  var STATE_COLORS = {
+    'esperando su turno': '#64748b',
+    'revision':           '#f59e0b',
+    'en reparacion':      '#3b82f6',
+    'esperando piezas':   '#ec4899',
+    'no confirmada':      '#94a3b8',
+    'confirmada':         '#22c55e',
+    'reparada':           '#cc0014'
+  };
+
+  var sLabels = statusRows.map(function (r) { return r.status; });
+  var sData   = statusRows.map(function (r) { return r.cnt; });
+  var sColors = statusRows.map(function (r) { return STATE_COLORS[r.status] || '#94a3b8'; });
+
+  if (!sLabels.length) { sLabels = ['Sin datos']; sData = [0]; sColors = ['#e5e7eb']; }
+
+  new Chart('cEstados', {
+    type: 'bar',
+    data: {
+      labels: sLabels,
+      datasets: [{ data: sData, backgroundColor: sColors, borderRadius: 5, borderSkipped: false }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 } },
+        x: { grid: { display: false } }
+      },
+      maintainAspectRatio: false
+    }
+  });
+
+  new Chart('cDona', {
+    type: 'doughnut',
+    data: {
+      labels: sLabels,
+      datasets: [{ data: sData, backgroundColor: sColors, borderWidth: 0 }]
+    },
+    options: {
+      cutout: '65%',
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8 } } },
+      maintainAspectRatio: false
+    }
+  });
+
+  var MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var rLabels = revenueRows.map(function (r) {
+    var p = (r.ym || '').split('-');
+    return p.length === 2 ? MONTHS[parseInt(p[1], 10) - 1] : r.ym;
+  });
+  var rData = revenueRows.map(function (r) { return r.total || 0; });
+
+  if (!rLabels.length) { rLabels = ['Sin datos']; rData = [0]; }
+
+  new Chart('cIngresos', {
+    type: 'bar',
+    data: {
+      labels: rLabels,
+      datasets: [{ data: rData, backgroundColor: '#cc0014', borderRadius: 5, borderSkipped: false }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: function (v) { return '$' + v.toLocaleString(); } } },
+        x: { grid: { display: false } }
+      },
+      maintainAspectRatio: false
+    }
+  });
+
+  // ── Reparaciones por mes ────────────────────────────────
+  var MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var rmLabels = repairsPerMonth.map(function (r) {
+    var p = (r.ym || '').split('-');
+    return p.length === 2 ? MONTHS[parseInt(p[1], 10) - 1] + ' ' + p[0].slice(2) : r.ym;
+  });
+  var rmData = repairsPerMonth.map(function (r) { return r.cnt || 0; });
+  if (!rmLabels.length) { rmLabels = ['Sin datos']; rmData = [0]; }
+
+  new Chart('cReparaciones', {
+    type: 'line',
+    data: {
+      labels: rmLabels,
+      datasets: [{
+        data: rmData,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,0.12)',
+        borderWidth: 2,
+        pointBackgroundColor: '#3b82f6',
+        pointRadius: 4,
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 } },
+        x: { grid: { display: false } }
+      },
+      maintainAspectRatio: false
+    }
+  });
+
+  // ── Marcas más registradas ──────────────────────────────
+  var bLabels = topBrands.map(function (r) { return r.brand; });
+  var bData   = topBrands.map(function (r) { return r.cnt; });
+  var bColors = ['#cc0014','#f59e0b','#3b82f6','#22c55e','#ec4899','#8b5cf6','#06b6d4','#64748b'];
+  if (!bLabels.length) { bLabels = ['Sin datos']; bData = [0]; }
+
+  new Chart('cMarcas', {
+    type: 'bar',
+    data: {
+      labels: bLabels,
+      datasets: [{
+        data: bData,
+        backgroundColor: bColors.slice(0, bData.length),
+        borderRadius: 5,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, ticks: { stepSize: 1 } },
+        y: { grid: { display: false } }
+      },
+      maintainAspectRatio: false
+    }
+  });
+})();
+</script>
+
+<%- include("../partials/footer") %>

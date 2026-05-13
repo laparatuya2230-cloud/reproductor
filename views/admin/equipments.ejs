@@ -1,0 +1,59 @@
+<%- include("../partials/header") %>
+
+<section class="hero">
+  <div>
+    <h1>Equipos Registrados</h1>
+    <p>Control de entradas activas y equipos ya entregados.</p>
+  </div>
+</section>
+
+<section class="panel">
+  <form class="toolbar" method="GET" action="/admin/equipos">
+    <input type="text" name="q" placeholder="Buscar por codigo, cliente, telefono o equipo" value="<%= search %>" />
+    <label class="inline-check">
+      <input type="checkbox" name="show_closed" value="1" <%= showClosed ? 'checked' : '' %> />
+      Mostrar entregados
+    </label>
+    <button class="button">Filtrar</button>
+    <a class="button ghost" href="/admin/equipos">Limpiar</a>
+  </form>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Codigo</th>
+          <th>Cliente</th>
+          <th>Numero</th>
+          <th>Equipo</th>
+          <th>Estado</th>
+          <th>Fecha ingreso</th>
+          <th>Ticket</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (equipments.length === 0) { %>
+          <tr>
+            <td colspan="7">No hay resultados para la busqueda actual.</td>
+          </tr>
+        <% } %>
+        <% equipments.forEach((item) => { %>
+          <tr>
+            <td><strong><%= item.code %></strong></td>
+            <td><%= item.customer_name %></td>
+            <td><%= item.customer_phone %></td>
+            <td><%= item.equipment_name %></td>
+            <td><span class="state-badge <%= item.is_closed ? 'done' : '' %>"><%= item.status %></span></td>
+            <td><%= formatDate(item.received_at) %></td>
+            <td>
+              <a class="button mini" href="/admin/ticket/<%= item.id %>" target="_blank">Ver ticket</a>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<%- include("../partials/footer") %>
+

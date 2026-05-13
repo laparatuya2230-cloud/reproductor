@@ -1,0 +1,103 @@
+<%- include("../partials/header") %>
+
+<section class="hero">
+  <div>
+    <h1>Editar Cotizacion <%= quote.quote_number %></h1>
+    <p>Modifica piezas, precios por inventario y total antes de volver a confirmar.</p>
+  </div>
+  <a class="button" href="/admin/cotizaciones">Volver a cotizaciones</a>
+</section>
+
+<section class="panel">
+  <% if (error) { %>
+    <div class="alert"><%= error %></div>
+  <% } %>
+  <% if (success) { %>
+    <div class="alert success"><%= success %></div>
+  <% } %>
+
+  <form method="POST" action="/admin/cotizaciones/<%= quote.id %>/editar" id="quoteForm" class="quote-form">
+    <div class="form-grid">
+      <label class="full">
+        Codigo unico del equipo *
+        <div class="inline-input">
+          <input type="text" name="equipment_code" id="equipmentCodeInput" value="<%= formData.equipment_code || '' %>" required />
+          <button class="button" type="button" id="checkEquipmentButton">Buscar equipo</button>
+        </div>
+      </label>
+
+      <label>
+        Mano de obra
+        <input type="number" step="0.01" min="0" name="labor_cost" value="<%= formData.labor_cost %>" />
+      </label>
+
+      <label>
+        Descuento (%)
+        <input type="number" step="0.01" min="0" max="100" name="discount_percent" value="<%= formData.discount_percent %>" />
+      </label>
+
+      <label class="full">
+        Notas
+        <textarea name="notes" rows="2"><%= formData.notes || '' %></textarea>
+      </label>
+    </div>
+
+    <div class="equipment-preview" id="equipmentPreview">
+      <% if (equipment) { %>
+        <p><strong>Equipo:</strong> <%= equipment.code %> | <%= equipment.equipment_name %></p>
+        <p><strong>Cliente:</strong> <%= equipment.customer_name %></p>
+      <% } else { %>
+        <p class="small-text">Busca un codigo unico para validar el equipo antes de guardar.</p>
+      <% } %>
+    </div>
+
+    <datalist id="partsCatalog">
+      <% inventoryCatalog.forEach((part) => { %>
+        <option value="<%= part.part_code %>"><%= part.part_name %> - <%= formatMoney(part.sale_price) %></option>
+      <% }) %>
+    </datalist>
+
+    <div class="table-wrap">
+      <table id="quoteItemsTable">
+        <thead>
+          <tr>
+            <th>Codigo de pieza</th>
+            <th>Cantidad</th>
+            <th>Precio</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (let i = 0; i < formData.item_part_code.length; i += 1) { %>
+            <tr>
+              <td>
+                <input type="text" name="item_part_code" class="part-code-input" list="partsCatalog" value="<%= formData.item_part_code[i] || '' %>" />
+                <small class="part-name-hint"></small>
+              </td>
+              <td><input type="number" name="item_quantity" step="1" min="0" value="<%= formData.item_quantity[i] || 1 %>" /></td>
+              <td><input type="number" name="item_price" class="part-price-input" step="0.01" min="0" value="0" readonly /></td>
+              <td><button class="button mini danger remove-item" type="button">X</button></td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="quote-totals">
+      <p><strong>Subtotal piezas:</strong> <span id="previewPartsSubtotal">0.00</span></p>
+      <p><strong>Mano de obra:</strong> <span id="previewLaborCost">0.00</span></p>
+      <p><strong>Descuento (%):</strong> <span id="previewDiscountPercent">0.00</span></p>
+      <p><strong>Descuento aplicado:</strong> <span id="previewDiscountAmount">0.00</span></p>
+      <p><strong>Total cotizacion:</strong> <span id="previewQuoteTotal">0.00</span></p>
+    </div>
+
+    <div class="quote-actions">
+      <button class="button" type="button" id="addItemButton">+ Agregar pieza</button>
+      <button class="button strong" type="submit">Guardar cambios</button>
+    </div>
+  </form>
+</section>
+
+<script src="/js/quotes-form.js"></script>
+
+<%- include("../partials/footer") %>

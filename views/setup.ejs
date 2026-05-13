@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> | Santiago Reparaciones</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Teko:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0d12;
+        --panel: #121722;
+        --line: #263145;
+        --ink: #f4f6fc;
+        --muted: #8d9ab3;
+        --accent: #cc0014;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(circle at top right, #1e2a44 0%, #0b0d12 45%);
+        color: var(--ink);
+        font-family: "Barlow Condensed", sans-serif;
+        display: grid;
+        place-items: center;
+        padding: 16px;
+      }
+
+      .setup-shell {
+        width: min(900px, 100%);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 20px;
+        display: grid;
+        gap: 18px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.32);
+      }
+
+      .setup-title {
+        margin: 0;
+        font-family: "Teko", sans-serif;
+        font-size: clamp(2rem, 6vw, 3rem);
+        letter-spacing: 0.04em;
+        line-height: 1;
+      }
+
+      .setup-sub {
+        margin: 0;
+        color: var(--muted);
+        font-size: 1rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
+        background: rgba(10, 12, 18, 0.4);
+      }
+
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 1.2rem;
+        letter-spacing: 0.03em;
+      }
+
+      .card p {
+        margin: 0 0 10px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .label {
+        display: block;
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+        color: #bcc8dd;
+        font-weight: 700;
+      }
+
+      .input {
+        width: 100%;
+        border: 1px solid var(--line);
+        background: #0c111b;
+        color: var(--ink);
+        border-radius: 9px;
+        padding: 10px 11px;
+        font-family: inherit;
+        font-size: 0.95rem;
+      }
+
+      .btn {
+        border: none;
+        border-radius: 9px;
+        padding: 10px 14px;
+        font-family: inherit;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .btn-secondary {
+        background: #1b2435;
+        border: 1px solid #304262;
+        color: #fff;
+      }
+
+      .alert {
+        border: 1px solid #7f1d1d;
+        background: #2a1010;
+        color: #fecaca;
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+
+      .alert-ok {
+        border-color: #14532d;
+        background: #08210f;
+        color: #86efac;
+      }
+
+      .meta {
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .mono {
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 0.82rem;
+        word-break: break-all;
+        color: #d3ddf1;
+      }
+
+      .progress-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.68);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 16px;
+      }
+
+      .progress-overlay.show {
+        display: flex;
+      }
+
+      .progress-card {
+        width: min(430px, 100%);
+        background: #101522;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px;
+      }
+
+      .progress-title {
+        margin: 0 0 4px;
+        font-family: "Teko", sans-serif;
+        font-size: 1.8rem;
+        letter-spacing: 0.03em;
+      }
+
+      .progress-sub {
+        margin: 0 0 10px;
+        color: var(--muted);
+      }
+
+      .progress-track {
+        width: 100%;
+        height: 11px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #0b111b;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        width: 1%;
+        height: 100%;
+        background: linear-gradient(90deg, #cc0014 0%, #ff3252 100%);
+        transition: width .35s ease;
+      }
+
+      .progress-meta {
+        margin-top: 7px;
+        display: flex;
+        justify-content: space-between;
+        color: #bcc8dd;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="setup-shell">
+      <header>
+        <h1 class="setup-title">Configuracion Inicial</h1>
+        <p class="setup-sub">
+          Elige si quieres iniciar limpio o restaurar un backup completo del sistema.
+        </p>
+      </header>
+
+      <% if (error) { %>
+        <div class="alert"><%= error %></div>
+      <% } %>
+      <% if (success) { %>
+        <div class="alert alert-ok"><%= success %></div>
+      <% } %>
+
+      <% if (verifyResult) { %>
+        <section class="card">
+          <h2>Resultado de verificacion</h2>
+          <div class="meta">
+            <div>Archivo: <span class="mono"><%= verifyResult.filePath %></span></div>
+            <div>Version: <strong><%= verifyResult.version %></strong></div>
+            <div>Fecha backup: <strong><%= verifyResult.createdAt %></strong></div>
+            <div>Archivos: <strong><%= verifyResult.fileCount %></strong></div>
+            <div>Peso total: <strong><%= verifyResult.totalBytes %></strong></div>
+          </div>
+        </section>
+      <% } %>
+
+      <section class="grid">
+        <article class="card">
+          <h2>Instalacion limpia</h2>
+          <p>
+            Crea una instalacion nueva desde cero con base de datos limpia y usuarios por defecto.
+          </p>
+          <form method="POST" action="/setup/limpio">
+            <button class="btn btn-primary" type="submit">Iniciar limpio</button>
+          </form>
+        </article>
+
+        <article class="card">
+          <h2>Restaurar backup</h2>
+          <p>
+            Ingresa la ruta del archivo <strong>.srbackup</strong> (USB o disco) para restaurar.
+          </p>
+          <form method="POST" action="/setup/verificar" style="margin-bottom:10px">
+            <label class="label" for="backup-path-check">Ruta del backup</label>
+            <input
+              class="input"
+              id="backup-path-check"
+              name="backup_path"
+              placeholder="E:\\respaldos\\sr_backup_20260513_100000.srbackup"
+              required
+            />
+            <div style="margin-top:10px">
+              <button class="btn btn-secondary" type="submit">Verificar backup</button>
+            </div>
+          </form>
+
+          <form method="POST" action="/setup/restaurar" data-progress="backup" data-progress-label="Restaurando backup">
+            <label class="label" for="backup-path-restore">Ruta del backup</label>
+            <input
+              class="input"
+              id="backup-path-restore"
+              name="backup_path"
+              placeholder="E:\\respaldos\\sr_backup_20260513_100000.srbackup"
+              required
+            />
+            <div style="margin-top:10px">
+              <button class="btn btn-primary" type="submit">Restaurar backup</button>
+            </div>
+          </form>
+        </article>
+      </section>
+
+      <section class="card">
+        <h2>Rutas de datos</h2>
+        <div class="meta">
+          <div>Carpeta de datos: <span class="mono"><%= dataDir %></span></div>
+          <div>Backups locales: <span class="mono"><%= backupDir %></span></div>
+          <div>
+            Nota: si reinstalas y conservas la carpeta de datos, el sistema mantiene usuarios y equipos.
+            Para empezar desde cero, usa <strong>Iniciar limpio</strong> o elige borrar datos en la desinstalacion.
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="progress-overlay" id="setupProgressOverlay" aria-hidden="true">
+      <div class="progress-card">
+        <h3 class="progress-title" id="setupProgressTitle">Restaurando backup</h3>
+        <p class="progress-sub">No cierres esta ventana hasta completar el proceso.</p>
+        <div class="progress-track">
+          <div class="progress-fill" id="setupProgressFill"></div>
+        </div>
+        <div class="progress-meta">
+          <span>Progreso estimado</span>
+          <strong id="setupProgressPercent">1%</strong>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var overlay = document.getElementById("setupProgressOverlay");
+        var fill = document.getElementById("setupProgressFill");
+        var percent = document.getElementById("setupProgressPercent");
+        var title = document.getElementById("setupProgressTitle");
+        if (!overlay || !fill || !percent || !title) return;
+
+        var timer = null;
+
+        function setProgress(value) {
+          var safe = Math.max(1, Math.min(99, Number(value) || 1));
+          fill.style.width = safe.toFixed(0) + "%";
+          percent.textContent = safe.toFixed(0) + "%";
+        }
+
+        function startProgress(label) {
+          if (timer) clearInterval(timer);
+          title.textContent = label || "Procesando backup";
+          overlay.classList.add("show");
+          overlay.setAttribute("aria-hidden", "false");
+          var progress = 1;
+          setProgress(progress);
+          timer = setInterval(function () {
+            var step = progress < 70 ? (Math.random() * 6 + 2) : progress < 90 ? (Math.random() * 1.8 + 0.4) : 0.2;
+            progress = Math.min(99, progress + step);
+            setProgress(progress);
+          }, 420);
+        }
+
+        document.querySelectorAll("form[data-progress='backup']").forEach(function (form) {
+          form.addEventListener("submit", function () {
+            startProgress(form.getAttribute("data-progress-label"));
+          });
+        });
+      })();
+    </script>
+
+    <% if (shouldCloseApp) { %>
+      <script>
+        setTimeout(function () {
+          window.close();
+        }, 1500);
+      </script>
+    <% } %>
+  </body>
+</html>

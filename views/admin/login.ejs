@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iniciar sesión | Santiago Reparaciones</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: #0e0e0e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Barlow Condensed", sans-serif;
+      color: #fff;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 380px;
+      background: #161616;
+      border: 1px solid #222;
+      border-radius: 16px;
+      padding: 40px 36px 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+    .login-logo {
+      width: 64px; height: 64px;
+      background: #cc0014;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; font-weight: 700; letter-spacing: 2px;
+    }
+    .login-title { font-size: 1.4rem; font-weight: 700; letter-spacing: .08em; text-align: center; }
+    .login-sub   { font-size: .9rem; color: #555; margin-top: 4px; text-align: center; }
+    form { width: 100%; display: flex; flex-direction: column; gap: 14px; }
+    label { display: flex; flex-direction: column; gap: 5px; font-size: .85rem; color: #aaa; text-transform: uppercase; letter-spacing: .06em; }
+    input[type="text"], input[type="password"] {
+      background: #0e0e0e;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: #fff;
+      font: inherit;
+      font-size: 1rem;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    input:focus { border-color: #cc0014; }
+    .btn-login {
+      margin-top: 6px;
+      background: #cc0014;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-login:hover { background: #a8000f; }
+    .alert-error {
+      width: 100%;
+      background: #2a0008;
+      border: 1px solid #cc0014;
+      border-radius: 8px;
+      color: #ff6b7a;
+      font-size: .9rem;
+      padding: 10px 14px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-logo">SR</div>
+    <div>
+      <div class="login-title">SANTIAGO REPARACIONES</div>
+      <div class="login-sub">Sistema de gestión · Módulos Car Audio</div>
+    </div>
+    <% if (error) { %>
+      <div class="alert-error"><%= error %></div>
+    <% } %>
+    <form method="POST" action="/admin/login">
+      <label>
+        Usuario
+        <input type="text" name="username" autofocus autocomplete="username" required />
+      </label>
+      <label>
+        Contraseña
+        <input type="password" name="password" autocomplete="current-password" required />
+      </label>
+      <button class="btn-login" type="submit">Entrar</button>
+    </form>
+  </div>
+</body>
+</html>

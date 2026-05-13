@@ -1,0 +1,103 @@
+<%- include("../partials/header") %>
+
+<section class="hero">
+  <div>
+    <h1>Inventario</h1>
+    <p>Registra piezas nuevas compradas para reparar equipos.</p>
+  </div>
+</section>
+
+<% if (error) { %>
+<div class="alert-banner" style="background:#fff5f5;border-color:#fecaca;color:#b91c1c">
+  <i class="fa-solid fa-circle-xmark"></i> <%= error %>
+</div>
+<% } %>
+<% if (success) { %>
+<div class="alert-banner" style="background:#f0fdf4;border-color:#bbf7d0;color:#15803d">
+  <i class="fa-solid fa-circle-check"></i> <%= success %>
+</div>
+<% } %>
+<% if (lowStockCount > 0) { %>
+<div class="alert-banner alert-warning">
+  <i class="fa-solid fa-triangle-exclamation"></i>
+  <strong><%= lowStockCount %> pieza<%= lowStockCount > 1 ? 's' : '' %></strong> con stock bajo (≤ <%= LOW_STOCK_THRESHOLD %> unidades). Revisa las filas marcadas en rojo.
+</div>
+<% } %>
+
+<section class="split-panel">
+  <article class="panel">
+    <h2>Nueva pieza</h2>
+    <form class="form-grid" method="POST" action="/admin/inventario">
+      <label>
+        Nombre de la pieza *
+        <input type="text" name="part_name" required />
+      </label>
+      <label>
+        Codigo de pieza
+        <input type="text" name="part_code" />
+      </label>
+      <label>
+        Cantidad
+        <input type="number" step="1" min="0" name="quantity" value="0" />
+      </label>
+      <label>
+        Precio de compra
+        <input type="number" step="0.01" min="0" name="unit_cost" value="0" />
+      </label>
+      <label>
+        Precio de venta
+        <input type="number" step="0.01" min="0" name="sale_price" value="0" />
+      </label>
+      <label class="full">
+        Suplidor
+        <input type="text" name="supplier" />
+      </label>
+      <button class="button strong full" type="submit">Guardar en inventario</button>
+    </form>
+  </article>
+
+  <article class="panel">
+    <h2>Piezas registradas</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Pieza</th>
+            <th>Codigo</th>
+            <th>Cantidad</th>
+            <th>Precio compra</th>
+            <th>Precio venta</th>
+            <th>Suplidor</th>
+            <th>Actualizar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (parts.length === 0) { %>
+            <tr>
+              <td colspan="7">Aun no hay piezas registradas.</td>
+            </tr>
+          <% } %>
+          <% parts.forEach((part) => { %>
+            <tr class="<%= part.quantity <= LOW_STOCK_THRESHOLD ? 'row-low-stock' : '' %>">
+              <td><input class="table-input" type="text" name="part_name" value="<%= part.part_name %>" form="inv-<%= part.id %>" /></td>
+              <td><input class="table-input" type="text" name="part_code" value="<%= part.part_code || '' %>" form="inv-<%= part.id %>" /></td>
+              <td>
+                <input class="table-input" type="number" min="0" step="1" name="quantity" value="<%= part.quantity %>" form="inv-<%= part.id %>" />
+                <% if (part.quantity <= LOW_STOCK_THRESHOLD) { %><span class="badge-low-stock">Stock bajo</span><% } %>
+              </td>
+              <td><input class="table-input" type="number" min="0" step="0.01" name="unit_cost" value="<%= part.unit_cost %>" form="inv-<%= part.id %>" /></td>
+              <td><input class="table-input" type="number" min="0" step="0.01" name="sale_price" value="<%= part.sale_price %>" form="inv-<%= part.id %>" /></td>
+              <td><input class="table-input" type="text" name="supplier" value="<%= part.supplier || '' %>" form="inv-<%= part.id %>" /></td>
+              <td>
+                <form id="inv-<%= part.id %>" method="POST" action="/admin/inventario/<%= part.id %>/actualizar"></form>
+                <button class="button mini" type="submit" form="inv-<%= part.id %>">Guardar</button>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+
+<%- include("../partials/footer") %>

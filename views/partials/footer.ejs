@@ -1,0 +1,20 @@
+    </div><!-- /.page-shell -->
+  </div><!-- /.content -->
+</div><!-- /.main -->
+<script>
+(function(){
+  var btn  = document.getElementById('themeToggle');
+  var icon = document.getElementById('themeIcon');
+  function apply(dark) {
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    icon.className = dark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    localStorage.setItem('sr-theme', dark ? 'dark' : 'light');
+  }
+  apply(localStorage.getItem('sr-theme') === 'dark');
+  if (btn) btn.addEventListener('click', function(){
+    apply(document.documentElement.getAttribute('data-theme') !== 'dark');
+  });
+})();
+</script>
+</body>
+</html>

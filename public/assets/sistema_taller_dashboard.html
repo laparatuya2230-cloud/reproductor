@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santiago Reparaciones - Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#111;
+    color:white;
+    font-family:'Montserrat',sans-serif;
+}
+
+.sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    width:260px;
+    height:100vh;
+    background:#000;
+    border-right:3px solid #d50000;
+    padding:25px;
+}
+
+.logo h1{
+    font-family:'Oswald',sans-serif;
+    font-size:52px;
+    line-height:48px;
+}
+
+.logo span{
+    color:#ff0000;
+}
+
+.logo p{
+    color:#ccc;
+    margin-top:10px;
+}
+
+.menu{
+    margin-top:40px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.menu button{
+    background:#191919;
+    border:none;
+    color:white;
+    padding:16px;
+    border-radius:12px;
+    text-align:left;
+    cursor:pointer;
+    font-size:15px;
+}
+
+.menu button:hover{
+    background:#d50000;
+}
+
+.main{
+    margin-left:260px;
+    padding:30px;
+}
+
+.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.top h2{
+    font-size:38px;
+}
+
+.search input{
+    width:320px;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:#1b1b1b;
+    color:white;
+}
+
+.cards{
+    margin-top:30px;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:20px;
+}
+
+.card{
+    background:#191919;
+    border-left:5px solid red;
+    padding:22px;
+    border-radius:16px;
+}
+
+.card h3{
+    color:#bbb;
+    margin-bottom:10px;
+}
+
+.card p{
+    font-size:36px;
+    font-weight:bold;
+}
+
+.paneles{
+    margin-top:25px;
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:20px;
+}
+
+.panel{
+    background:#191919;
+    border-radius:18px;
+    padding:25px;
+}
+
+.panel h3{
+    margin-bottom:20px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    padding:14px;
+    border-bottom:1px solid #333;
+    text-align:left;
+}
+
+th{
+    color:#ff4a4a;
+}
+
+.estado{
+    padding:6px 12px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.r{
+    background:#2f4f4f;
+}
+
+.e{
+    background:#7a4b00;
+}
+
+.l{
+    background:#005f2f;
+}
+
+.form{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.form input,
+.form select,
+.form textarea{
+    background:#101010;
+    border:none;
+    border-radius:12px;
+    padding:14px;
+    color:white;
+}
+
+.form textarea{
+    height:90px;
+    resize:none;
+}
+
+.form button{
+    background:#d50000;
+    border:none;
+    color:white;
+    padding:16px;
+    border-radius:12px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.footerBoxes{
+    margin-top:25px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:20px;
+}
+
+.box{
+    background:#191919;
+    border-radius:16px;
+    padding:20px;
+}
+
+.box h4{
+    color:#ff4a4a;
+    margin-bottom:12px;
+}
+
+.box ul{
+    padding-left:20px;
+    line-height:1.8;
+    color:#ccc;
+}
+
+@media(max-width:1200px){
+
+    .cards{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .paneles{
+        grid-template-columns:1fr;
+    }
+
+    .footerBoxes{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+
+    <div class="logo">
+        <h1>SANTIAGO<br><span>REPARACIONES</span></h1>
+        <p>Módulos Car Audio</p>
+    </div>
+
+    <div class="menu">
+        <button>📥 Recepción</button>
+        <button>🔧 Reparaciones</button>
+        <button>✅ Equipos Listos</button>
+        <button>🧾 Facturación</button>
+        <button>📦 Inventario</button>
+        <button>📊 Estadísticas</button>
+        <button>👨‍🔧 Técnicos</button>
+        <button>📲 WhatsApp</button>
+        <button>⚙️ Configuración</button>
+    </div>
+
+</div>
+
+<div class="main">
+
+    <div class="top">
+
+        <h2>Panel Principal</h2>
+
+        <div class="search">
+            <input type="text" placeholder="Buscar equipo...">
+        </div>
+
+    </div>
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>Equipos Recibidos</h3>
+            <p>24</p>
+        </div>
+
+        <div class="card">
+            <h3>En Reparación</h3>
+            <p>13</p>
+        </div>
+
+        <div class="card">
+            <h3>Equipos Listos</h3>
+            <p>8</p>
+        </div>
+
+        <div class="card">
+            <h3>Ganancias</h3>
+            <p>$185K</p>
+        </div>
+
+    </div>
+
+    <div class="paneles">
+
+        <div class="panel">
+
+            <h3>Equipos Recientes</h3>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Cliente</th>
+                        <th>Equipo</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td>SRA-2026-0001</td>
+                        <td>Juan Pérez</td>
+                        <td>Taramps HD 3000</td>
+                        <td><span class="estado r">Recibido</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>SRA-2026-0002</td>
+                        <td>Carlos Díaz</td>
+                        <td>Soundigital</td>
+                        <td><span class="estado e">Reparación</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>SRA-2026-0003</td>
+                        <td>Manuel Reyes</td>
+                        <td>Pioneer</td>
+                        <td><span class="estado l">Listo</span></td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div class="panel">
+
+            <h3>Nuevo Equipo</h3>
+
+            <div class="form">
+
+                <input type="text" placeholder="Nombre del cliente">
+                <input type="text" placeholder="Número de teléfono">
+                <input type="text" placeholder="Nombre del equipo">
+
+                <select>
+                    <option>Estado</option>
+                    <option>Recibido</option>
+                    <option>Diagnóstico</option>
+                    <option>Reparación</option>
+                    <option>Listo</option>
+                </select>
+
+                <input type="date">
+                <input type="time">
+
+                <textarea placeholder="Descripción de la falla"></textarea>
+
+                <button>Guardar Equipo</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="footerBoxes">
+
+        <div class="box">
+            <h4>📷 Funciones</h4>
+
+            <ul>
+                <li>Foto del equipo</li>
+                <li>Impresión de ticket</li>
+                <li>Código QR</li>
+                <li>Barcode automático</li>
+            </ul>
+        </div>
+
+        <div class="box">
+            <h4>📦 Inventario</h4>
+
+            <ul>
+                <li>Control de piezas</li>
+                <li>Stock automático</li>
+                <li>Alertas</li>
+                <li>Historial</li>
+            </ul>
+        </div>
+
+        <div class="box">
+            <h4>📊 Estadísticas</h4>
+
+            <ul>
+                <li>Ganancias mensuales</li>
+                <li>Equipos reparados</li>
+                <li>Fallas frecuentes</li>
+                <li>Marcas más reparadas</li>
+            </ul>
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

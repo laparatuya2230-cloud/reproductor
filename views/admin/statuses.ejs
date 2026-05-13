@@ -1,0 +1,75 @@
+<%- include("../partials/header") %>
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Estados de Reparacion</div>
+    <div class="page-sub">Actualiza el avance del equipo: revision, reparacion, espera de piezas y confirmaciones.</div>
+  </div>
+</div>
+
+<div class="panel">
+  <form method="GET" action="/admin/estados" class="toolbar">
+    <input type="text" name="q" placeholder="Buscar por codigo unico, cliente..." value="<%= search %>" />
+    <button class="button strong" type="submit">Buscar</button>
+    <% if (search) { %>
+      <a class="button" href="/admin/estados">Limpiar</a>
+    <% } %>
+  </form>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Codigo</th>
+          <th>Cliente</th>
+          <th>Equipo</th>
+          <th>Estado actual</th>
+          <th>Actualizar</th>
+          <th>WA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (equipments.length === 0) { %>
+          <tr>
+            <td colspan="6">
+              <% if (search) { %>
+                No se encontro ningun equipo con "<%= search %>".
+              <% } else { %>
+                No hay equipos activos pendientes.
+              <% } %>
+            </td>
+          </tr>
+        <% } %>
+        <% equipments.forEach((item) => { %>
+          <tr>
+            <td><strong><%= item.code %></strong></td>
+            <td><%= item.customer_name %> &mdash; <%= item.customer_phone %></td>
+            <td><%= item.equipment_name %></td>
+            <td><span class="state-badge"><%= item.status %></span></td>
+            <td>
+              <form method="POST" action="/admin/estados/<%= item.id %>" class="status-inline">
+                <select name="status" required class="status-select">
+                  <% workflowStates.forEach((state) => { %>
+                    <option value="<%= state %>" <%= state === item.status ? 'selected' : '' %>><%= state %></option>
+                  <% }) %>
+                </select>
+                <input type="text" name="comment" placeholder="Comentario interno" />
+                <button class="button mini strong" type="submit">Guardar</button>
+              </form>
+            </td>
+            <td>
+              <a class="btn-wa"
+                 href="<%= buildWaLink(item.customer_phone, item.equipment_name, item.code, item.status) %>"
+                 target="_blank"
+                 title="Notificar al cliente por WhatsApp">
+                <i class="fa-brands fa-whatsapp"></i>
+              </a>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include("../partials/footer") %>

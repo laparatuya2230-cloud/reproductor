@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ticket <%= equipment.code %></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Teko:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/ticket.css" />
+    <style id="dynamic-page-size"></style>
+  </head>
+  <body>
+    <div class="ticket-canvas">
+      <div class="ticket-brand drag-item" data-drag="brand-title" style="font-size: 18.8px;">SANTIAGO REPARACIONES</div>
+
+      <div class="ticket-label name drag-item" data-drag="label-name" style="left: 3.2%; top: 26.1%;">NOMBRE:</div>
+      <div class="ticket-label phone drag-item" data-drag="label-phone" style="left: 3.2%; top: 45.2%;">NUMERO:</div>
+      <div class="ticket-label code drag-item" data-drag="label-code" style="left: 3.24%; top: 65.18%;">CODIGO:</div>
+      <div class="ticket-label equipment drag-item" data-drag="label-equipment" style="left: 3.65%; top: 88.44%;">EQUIPO:</div>
+
+      <div class="ticket-line name drag-item" data-drag="line-name" style="left: 32.66%; top: 35.4%;"></div>
+      <div class="ticket-line phone drag-item" data-drag="line-phone" style="left: 32.05%; top: 54.23%;"></div>
+      <div class="ticket-line code drag-item" data-drag="line-code" style="left: 31.54%; top: 73.64%;"></div>
+      <div class="ticket-line equipment drag-item" data-drag="line-equipment" style="left: 29.87%; top: 97.27%;"></div>
+
+      <div class="field name drag-item" data-drag="name" style="left: 33.59%; top: 22.04%;">
+        <span style="transform: translate(-50%, -50%);"><%= equipment.customer_name %></span>
+      </div>
+      <div class="field phone drag-item" data-drag="phone" style="left: 32.98%; top: 40.8%;">
+        <span style="transform: translate(-50%, -50%);"><%= equipment.customer_phone %></span>
+      </div>
+      <div class="field equipment drag-item" data-drag="equipment" style="left: 28.82%; top: 83.83%;">
+        <span style="transform: translate(-50%, -50%);"><%= equipment.equipment_name %></span>
+      </div>
+      <% var _d = new Date(equipment.received_at); %>
+      <div class="field day drag-item" data-drag="day">
+        <span style="transform: translate(-50%, -50%);"><%= String(_d.getDate()).padStart(2, "0") %></span>
+      </div>
+      <div class="field month drag-item" data-drag="month">
+        <span style="transform: translate(-50%, -50%);"><%= String(_d.getMonth() + 1).padStart(2, "0") %></span>
+      </div>
+      <div class="field year drag-item" data-drag="year">
+        <span style="transform: translate(-50%, -50%);"><%= _d.getFullYear() %></span>
+      </div>
+      <div class="field time drag-item" data-drag="time">
+        <span style="transform: translate(-50%, -50%);"><%= _d.toLocaleTimeString("es-DO", { hour: "2-digit", minute: "2-digit", hour12: true }) %></span>
+      </div>
+
+      <div class="code-cleaner"></div>
+      <div class="code-value drag-item is-selected" data-drag="code" style="left: 32.28%; top: 63.62%;"><%= equipment.code %></div>
+
+      <div class="barcode-box drag-item" data-drag="barcode">
+        <img src="/barcode/<%= equipment.code %>" alt="Codigo de barras" />
+        <div class="barcode-text"><%= equipment.code %></div>
+      </div>
+    </div>
+
+    <div class="print-actions">
+      <button id="btn-print" type="button">Imprimir ticket</button>
+      <button id="btn-reset" type="button">Resetear posiciones</button>
+      <button id="btn-font-reset" type="button">Resetear tamanos</button>
+      <a href="/admin/equipos">Volver al sistema</a>
+    </div>
+
+    <div class="editor-panel">
+      <div class="editor-row">
+        <label for="paper-width">Ancho hoja (in)</label>
+        <input id="paper-width" type="number" min="0.5" max="8" step="0.01" value="4.00" />
+        <label for="paper-height">Alto hoja (in)</label>
+        <input id="paper-height" type="number" min="0.5" max="8" step="0.01" value="2.00" />
+        <button id="btn-paper-apply" type="button">Aplicar hoja</button>
+      </div>
+      <div class="editor-row">
+        <label for="text-target">Texto a editar</label>
+        <select id="text-target">
+          <option value="brand-title">Titulo SANTIAGO</option>
+          <option value="label-name">Etiqueta NOMBRE</option>
+          <option value="name">Valor NOMBRE</option>
+          <option value="label-phone">Etiqueta NUMERO</option>
+          <option value="phone">Valor NUMERO</option>
+          <option value="label-code">Etiqueta CODIGO</option>
+          <option value="code">Valor CODIGO</option>
+          <option value="label-equipment">Etiqueta EQUIPO</option>
+          <option value="equipment">Valor EQUIPO</option>
+        </select>
+        <button id="btn-font-minus" type="button">A-</button>
+        <button id="btn-font-plus" type="button">A+</button>
+      </div>
+    </div>
+
+    <p class="drag-hint">
+      Arrastra texto y lineas por separado. Selecciona un texto y usa A+/A- o Ctrl + rueda del mouse para cambiar tamano.
+    </p>
+
+    <script>
+      (function () {
+        var canvas = document.querySelector('.ticket-canvas');
+        var KEY = 'sr-ticket-positions-v10';
+        var KEY_CFG = 'sr-ticket-config-v4';
+        var SHOULD_AUTO_PRINT = <%- autoPrint ? 'true' : 'false' %>;
+        var isElectron = /Electron/i.test(navigator.userAgent || '');
+        var FORCE_LOCKED_LAYOUT = isElectron;
+        var active = null, ox = 0, oy = 0, sl = 0, st = 0;
+        var selected = null;
+        var pageStyleTag = null;
+
+        var printButton = document.getElementById('btn-print');
+        var targetSelect = document.getElementById('text-target');
+        var widthInput = document.getElementById('paper-width');
+        var heightInput = document.getElementById('paper-height');
+
+        function openBrowserPrintDialog() {
+          window.print();
+        }
+
+        async function tryDesktopPrint() {
+          if (!window.srDesktop || typeof window.srDesktop.printTicket !== 'function') {
+            return false;
+          }
+
+          var result = await window.srDesktop.printTicket({ deviceHint: '4BARCODE' });
+          if (!result || !result.success) {
+            throw new Error((result && result.failureReason) || 'No se pudo imprimir el ticket');
+          }
+          return true;
+        }
+
+        async function printTicket() {
+          try {
+            var desktopPrinted = await tryDesktopPrint();
+            if (!desktopPrinted) {
+              openBrowserPrintDialog();
+            }
+          } catch (err) {
+            console.error('No se pudo imprimir por canal nativo. Se usara el dialogo normal.', err);
+            openBrowserPrintDialog();
+          }
+        }
+
+        function getElByDragKey(key) {
+          return document.querySelector('.drag-item[data-drag="' + key + '"]');
+        }
+
+        function getConfig() {
+          try {
+            var cfg = JSON.parse(localStorage.getItem(KEY_CFG) || '{}');
+            return {
+              paperWidth: Number(cfg.paperWidth) || 4,
+              paperHeight: Number(cfg.paperHeight) || 2,
+              fonts: cfg.fonts || {}
+            };
+          } catch (_) {
+            return { paperWidth: 4, paperHeight: 2, fonts: {} };
+          }
+        }
+
+        function saveConfig(cfg) {
+          try { localStorage.setItem(KEY_CFG, JSON.stringify(cfg)); } catch (_) {}
+        }
+
+        function ensurePageStyleTag() {
+          if (!pageStyleTag) pageStyleTag = document.getElementById('dynamic-page-size');
+          if (!pageStyleTag) {
+            pageStyleTag = document.createElement('style');
+            pageStyleTag.id = 'dynamic-page-size';
+            document.head.appendChild(pageStyleTag);
+          }
+        }
+
+        function lockTicketLayout() {
+          try { localStorage.removeItem(KEY); } catch (_) {}
+          try { localStorage.removeItem(KEY_CFG); } catch (_) {}
+          applyPaperSize(4, 2, false);
+          fitFields();
+
+          var panel = document.querySelector('.editor-panel');
+          if (panel) panel.style.display = 'none';
+          var hint = document.querySelector('.drag-hint');
+          if (hint) hint.style.display = 'none';
+          var resetBtn = document.getElementById('btn-reset');
+          if (resetBtn) resetBtn.style.display = 'none';
+          var resetFontBtn = document.getElementById('btn-font-reset');
+          if (resetFontBtn) resetFontBtn.style.display = 'none';
+          document.querySelectorAll('.drag-item').forEach(function (el) {
+            el.classList.remove('is-selected');
+          });
+        }
+
+        if (printButton) {
+          printButton.addEventListener('click', function () {
+            printTicket();
+          });
+        }
+
+        function applyPaperSize(w, h, save) {
+          var width = Math.max(0.5, Math.min(8, Number(w) || 4));
+          var height = Math.max(0.5, Math.min(8, Number(h) || 2));
+
+          widthInput.value = width.toFixed(2);
+          heightInput.value = height.toFixed(2);
+
+          ensurePageStyleTag();
+          pageStyleTag.textContent =
+            '@page { size: ' + width.toFixed(2) + 'in ' + height.toFixed(2) + 'in; margin: 0mm; }' +
+            '@media print {' +
+            'html, body { width: ' + width.toFixed(2) + 'in !important; height: ' + height.toFixed(2) + 'in !important; }' +
+            '.ticket-canvas { width: ' + width.toFixed(2) + 'in !important; height: ' + height.toFixed(2) + 'in !important; }' +
+            '}';
+
+          if (save) {
+            var cfg = getConfig();
+            cfg.paperWidth = width;
+            cfg.paperHeight = height;
+            saveConfig(cfg);
+          }
+        }
+
+        function setSelected(el) {
+          if (selected) selected.classList.remove('is-selected');
+          selected = el || null;
+          if (selected) {
+            selected.classList.add('is-selected');
+            if (selected.dataset && selected.dataset.drag) {
+              targetSelect.value = selected.dataset.drag;
+            }
+          }
+        }
+
+        function readFontPx(el) {
+          var v = parseFloat(window.getComputedStyle(el).fontSize);
+          return isNaN(v) ? 18 : v;
+        }
+
+        function changeSelectedFont(stepPx) {
+          if (!selected) {
+            selected = getElByDragKey(targetSelect.value);
+            if (!selected) return;
+            setSelected(selected);
+          }
+          var current = readFontPx(selected);
+          var next = Math.max(8, current + stepPx);
+          selected.style.fontSize = next.toFixed(1) + 'px';
+
+          var cfg = getConfig();
+          cfg.fonts[selected.dataset.drag] = selected.style.fontSize;
+          saveConfig(cfg);
+          fitFields();
+        }
+
+        function applySavedFontSizes() {
+          var cfg = getConfig();
+          Object.keys(cfg.fonts).forEach(function (key) {
+            var el = getElByDragKey(key);
+            if (el && cfg.fonts[key]) {
+              el.style.fontSize = cfg.fonts[key];
+            }
+          });
+        }
+
+        try {
+          var saved = JSON.parse(localStorage.getItem(KEY) || '{}');
+          document.querySelectorAll('.drag-item').forEach(function (el) {
+            var k = el.dataset.drag;
+            if (k && saved[k]) {
+              if (saved[k].left) el.style.left = saved[k].left;
+              if (saved[k].top) el.style.top = saved[k].top;
+            }
+          });
+        } catch (_) {}
+
+        document.querySelectorAll('.drag-item').forEach(function (el) {
+          el.addEventListener('click', function () { setSelected(el); });
+
+          el.addEventListener('mousedown', function (e) {
+            setSelected(el);
+            var cr = canvas.getBoundingClientRect();
+            var er = el.getBoundingClientRect();
+            active = el;
+            ox = e.clientX; oy = e.clientY;
+            sl = (er.left - cr.left) / cr.width * 100;
+            st = (er.top - cr.top) / cr.height * 100;
+            el.style.zIndex = 10;
+            e.preventDefault();
+          });
+
+          el.addEventListener('wheel', function (e) {
+            if (!e.ctrlKey) return;
+            e.preventDefault();
+            setSelected(el);
+            changeSelectedFont(e.deltaY < 0 ? 1.2 : -1.2);
+          }, { passive: false });
+        });
+
+        document.addEventListener('mousemove', function (e) {
+          if (!active) return;
+          var cr = canvas.getBoundingClientRect();
+          active.style.left = (sl + (e.clientX - ox) / cr.width * 100).toFixed(2) + '%';
+          active.style.top = (st + (e.clientY - oy) / cr.height * 100).toFixed(2) + '%';
+        });
+
+        document.addEventListener('mouseup', function () {
+          if (!active) return;
+          active.style.zIndex = '';
+          active = null;
+          var pos = {};
+          document.querySelectorAll('.drag-item').forEach(function (el) {
+            var k = el.dataset.drag;
+            if (k) pos[k] = { left: el.style.left, top: el.style.top };
+          });
+          try { localStorage.setItem(KEY, JSON.stringify(pos)); } catch (_) {}
+          fitFields();
+        });
+
+        document.getElementById('btn-reset').addEventListener('click', function () {
+          try { localStorage.removeItem(KEY); } catch (_) {}
+          document.querySelectorAll('.drag-item').forEach(function (el) {
+            el.style.left = '';
+            el.style.top = '';
+          });
+          fitFields();
+        });
+
+        document.getElementById('btn-paper-apply').addEventListener('click', function () {
+          applyPaperSize(widthInput.value, heightInput.value, true);
+        });
+
+        document.getElementById('btn-font-plus').addEventListener('click', function () {
+          setSelected(getElByDragKey(targetSelect.value));
+          changeSelectedFont(1.2);
+        });
+
+        document.getElementById('btn-font-minus').addEventListener('click', function () {
+          setSelected(getElByDragKey(targetSelect.value));
+          changeSelectedFont(-1.2);
+        });
+
+        document.getElementById('btn-font-reset').addEventListener('click', function () {
+          var cfg = getConfig();
+          cfg.fonts = {};
+          saveConfig(cfg);
+          document.querySelectorAll('.drag-item').forEach(function (el) {
+            el.style.fontSize = '';
+          });
+          fitFields();
+        });
+
+        function fitFields() {
+          document.querySelectorAll('.field').forEach(function (field) {
+            var span = field.querySelector('span');
+            if (!span) return;
+            span.style.transform = 'translate(-50%, -50%)';
+          });
+        }
+
+        if (FORCE_LOCKED_LAYOUT) {
+          lockTicketLayout();
+          if (SHOULD_AUTO_PRINT) {
+            setTimeout(printTicket, 180);
+          }
+          return;
+        }
+
+        (function initFromConfig() {
+          var cfg = getConfig();
+          applyPaperSize(cfg.paperWidth, cfg.paperHeight, false);
+          applySavedFontSizes();
+          setSelected(getElByDragKey(targetSelect.value));
+        })();
+
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(fitFields);
+        } else {
+          window.addEventListener('load', fitFields);
+        }
+
+        setTimeout(fitFields, 500);
+        window.addEventListener('resize', fitFields);
+
+        if (SHOULD_AUTO_PRINT) {
+          window.addEventListener('load', function () {
+            setTimeout(printTicket, 180);
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

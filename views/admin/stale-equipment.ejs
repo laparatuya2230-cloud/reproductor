@@ -1,0 +1,70 @@
+<%- include("../partials/header") %>
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Equipos sin movimiento</div>
+    <div class="page-sub">Equipos activos que no han tenido cambio de estado en los últimos <strong><%= days %></strong> días.</div>
+  </div>
+  <form method="GET" action="/admin/sin-movimiento" style="display:flex;gap:.5rem;align-items:center">
+    <label style="font-size:.85rem;color:var(--muted)">Días sin cambio:</label>
+    <select name="days" onchange="this.form.submit()" style="padding:.35rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--ink);font-size:.88rem">
+      <% [3,5,7,10,14,30].forEach(d => { %>
+        <option value="<%= d %>" <%= d == days ? 'selected' : '' %>><%= d %> días</option>
+      <% }) %>
+    </select>
+  </form>
+</div>
+
+<% if (rows.length === 0) { %>
+<div class="alert-banner" style="background:#f0fdf4;border-color:#bbf7d0;color:#15803d">
+  <i class="fa-solid fa-circle-check"></i>
+  No hay equipos activos sin movimiento en los últimos <%= days %> días.
+</div>
+<% } else { %>
+<div class="alert-banner" style="margin-bottom:1rem">
+  <i class="fa-solid fa-triangle-exclamation"></i>
+  <strong><%= rows.length %></strong> equipo<%= rows.length !== 1 ? 's' : '' %> sin cambio de estado en más de <%= days %> días.
+</div>
+
+<div class="panel" style="padding:0;overflow:hidden">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Código</th>
+        <th>Cliente</th>
+        <th>Equipo</th>
+        <th>Estado actual</th>
+        <th>Última actualización</th>
+        <th>Sin movimiento</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% rows.forEach(eq => {
+           const updated = new Date(eq.updated_at);
+           const diffDays = Math.floor((Date.now() - updated.getTime()) / 86400000);
+      %>
+      <tr>
+        <td><a href="/admin/equipos/<%= eq.id %>"><%= eq.code %></a></td>
+        <td><%= eq.customer_name %></td>
+        <td><%= eq.equipment_name %></td>
+        <td><span class="state-badge"><%= eq.status %></span></td>
+        <td><%= updated.toLocaleDateString('es-DO') %></td>
+        <td>
+          <span class="badge-low-stock" style="<%= diffDays >= 14 ? 'background:#fee2e2;color:#b91c1c' : '' %>">
+            <%= diffDays %> días
+          </span>
+        </td>
+        <td>
+          <a class="button" href="/admin/estados?q=<%= eq.code %>" style="padding:.3rem .7rem;font-size:.8rem">
+            <i class="fa-solid fa-pen"></i> Actualizar estado
+          </a>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+
+<%- include("../partials/footer") %>

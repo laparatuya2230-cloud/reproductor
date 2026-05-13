@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Consulta de estado | Santiago Reparaciones</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/css/client.css"/>
+</head>
+<body>
+
+<header class="c-header">
+  <span class="c-logo">SR</span>
+  <div>
+    <div class="c-title">Santiago Reparaciones</div>
+    <div class="c-subtitle">Portal de consulta para clientes</div>
+  </div>
+</header>
+
+<main class="c-main">
+
+  <!-- Búsqueda -->
+  <div class="c-search-card">
+    <label class="c-search-label">Consultar estado del equipo</label>
+    <form class="c-search-row" method="GET" action="/cliente">
+      <input class="c-search-input" type="text" name="code"
+             placeholder="Ej: SRA-2026-0001"
+             value="<%= queryCode %>" autocomplete="off" autocapitalize="characters"/>
+      <button class="c-search-btn" type="submit">
+        <i class="fa-solid fa-magnifying-glass"></i> Buscar
+      </button>
+    </form>
+  </div>
+
+  <% if (queryCode && !equipment) { %>
+  <div class="c-not-found">
+    <i class="fa-solid fa-circle-xmark"></i>
+    No se encontró ningún equipo con el código <strong><%= queryCode %></strong>.
+  </div>
+  <% } %>
+
+  <% if (equipment) {
+    const STEPS = [
+      'esperando su turno',
+      'revision',
+      'en reparacion',
+      'esperando piezas',
+      'confirmada',
+      'reparada',
+      'entregado'
+    ];
+    const currentIdx = STEPS.indexOf(equipment.status);
+
+    // Build a map of status → first date from history
+    const dateMap = {};
+    [...history].reverse().forEach(h => {
+      if (!dateMap[h.status]) dateMap[h.status] = h.changed_at;
+    });
+
+    const fmtDate = (v) => v
+      ? new Date(v).toLocaleString('es-DO', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+      : '';
+    const fmtMoney = (v) => new Intl.NumberFormat('es-DO',{style:'currency',currency:'DOP',maximumFractionDigits:2}).format(Number(v||0));
+  %>
+
+  <!-- Tarjeta del equipo -->
+  <div class="c-eq-card">
+    <div class="c-eq-top">
+      <div>
+        <div class="c-eq-name"><%= equipment.equipment_name %></div>
+        <div class="c-eq-code"><%= equipment.code %></div>
+      </div>
+      <span class="c-status-badge <%= equipment.is_closed ? 'done' : '' %>">
+        <%= equipment.status %>
+      </span>
+    </div>
+    <div class="c-eq-body">
+      <div class="c-info-row">
+        <span class="c-info-label">Cliente</span>
+        <span class="c-info-value"><%= equipment.customer_name %></span>
+      </div>
+      <div class="c-info-row">
+        <span class="c-info-label">Recibido</span>
+        <span class="c-info-value"><%= fmtDate(equipment.received_at || equipment.created_at) %></span>
+      </div>
+      <div class="c-info-row">
+        <span class="c-info-label">Última actualización</span>
+        <span class="c-info-value"><%= fmtDate(equipment.updated_at) %></span>
+      </div>
+      <% if (equipment.notes) { %>
+      <div class="c-info-row">
+        <span class="c-info-label">Observaciones</span>
+        <span class="c-info-value"><%= equipment.notes %></span>
+      </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Progreso de reparación -->
+  <div class="c-progress-card">
+    <div class="c-progress-title"><i class="fa-solid fa-list-check"></i> Progreso</div>
+    <div class="c-steps">
+      <% STEPS.forEach((step, idx) => {
+           let cls = 'pending';
+           if (idx < currentIdx) cls = 'done';
+           else if (idx === currentIdx) cls = 'current';
+           const isLast = idx === STEPS.length - 1;
+           const stepDate = dateMap[step];
+      %>
+      <div class="c-step <%= cls %>">
+        <div class="c-step-left">
+          <div class="c-step-dot">
+            <% if (cls === 'done') { %><i class="fa-solid fa-check"></i>
+            <% } else if (cls === 'current') { %><i class="fa-solid fa-circle-dot"></i>
+            <% } else { %><i class="fa-regular fa-circle"></i><% } %>
+          </div>
+          <% if (!isLast) { %><div class="c-step-line"></div><% } %>
+        </div>
+        <div class="c-step-content">
+          <div class="c-step-name"><%= step %></div>
+          <% if (stepDate) { %><div class="c-step-date"><%= fmtDate(stepDate) %></div><% } %>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <% if (invoice) { %>
+  <!-- Factura -->
+  <div class="c-invoice-card">
+    <div class="c-invoice-title"><i class="fa-solid fa-receipt"></i> Factura</div>
+    <div class="c-invoice-total"><%= fmtMoney(invoice.total) %></div>
+    <div class="c-invoice-meta">
+      No. <%= invoice.invoice_number %> &nbsp;·&nbsp;
+      <% if (invoice.paid_at || invoice.delivered_at) { %>
+        <span style="color:#16a34a;font-weight:600;"><i class="fa-solid fa-circle-check"></i> Pagada y entregada</span>
+      <% } else { %>
+        <span style="color:#d97706;font-weight:600;"><i class="fa-solid fa-clock"></i> Pendiente de pago</span>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Botón WhatsApp para consultas -->
+  <% if (equipment.customer_phone) {
+    const digits = String(equipment.customer_phone).replace(/\D/g,'');
+    const waNum = digits.length === 10 && /^(809|829|849)/.test(digits) ? '1'+digits : digits;
+    const waText = encodeURIComponent('Hola, soy ' + equipment.customer_name + ' y consulto sobre mi equipo ' + equipment.equipment_name + ' (Código: ' + equipment.code + '). ¿Hay novedades?');
+  %>
+  <a class="c-wa-btn" href="https://wa.me/<%= waNum %>?text=<%= waText %>" target="_blank">
+    <i class="fa-brands fa-whatsapp" style="font-size:1.3rem"></i>
+    Consultar por WhatsApp
+  </a>
+  <% } %>
+
+  <!-- Historial completo -->
+  <% if (history.length > 0) { %>
+  <div class="c-timeline-card">
+    <div class="c-timeline-title"><i class="fa-solid fa-clock-rotate-left"></i> Historial</div>
+    <div class="c-timeline">
+      <% history.forEach(item => { %>
+      <div class="c-tl-item">
+        <div class="c-tl-dot"></div>
+        <div>
+          <div class="c-tl-status"><%= item.status %></div>
+          <div class="c-tl-date"><%= fmtDate(item.changed_at) %></div>
+          <% if (item.comment) { %><div class="c-tl-comment"><%= item.comment %></div><% } %>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+  <% } %>
+
+  <% } %><!-- end if equipment -->
+
+</main>
+
+<footer class="c-footer">
+  Santiago Reparaciones &copy; <%= new Date().getFullYear() %>
+</footer>
+
+</body>
+</html>

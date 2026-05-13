@@ -1,0 +1,103 @@
+<%- include("../partials/header") %>
+
+<div class="page-header">
+  <div>
+    <div class="page-title">WhatsApp</div>
+    <div class="page-sub">Conecta el número de WhatsApp del taller para enviar notificaciones automáticas.</div>
+  </div>
+</div>
+
+<div style="max-width:480px">
+  <div class="panel" style="margin-bottom:1.25rem">
+
+    <!-- Estado actual -->
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem">
+      <span id="wa-dot" style="
+        width:14px;height:14px;border-radius:50%;flex-shrink:0;
+        background:<% if(waStatus==='ready'){%>#16a34a<%}else if(waStatus==='qr'||waStatus==='connecting'){%>#d97706<%}else{%>#6b7280<%}%>;
+      "></span>
+      <div>
+        <div style="font-weight:700;font-size:.95rem">
+          <% if(waStatus==='ready') { %>Conectado y listo
+          <% } else if(waStatus==='qr') { %>Esperando escaneo del código QR
+          <% } else if(waStatus==='connecting') { %>Conectando...
+          <% } else { %>Desconectado<% } %>
+        </div>
+        <div style="font-size:.8rem;color:var(--muted)">Estado del cliente WhatsApp Web</div>
+      </div>
+    </div>
+
+    <!-- QR code -->
+    <% if (waStatus === 'qr' && waQR) { %>
+    <div style="text-align:center;margin-bottom:1.25rem">
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">
+        Abre WhatsApp en tu teléfono → Dispositivos vinculados → Vincular dispositivo, y escanea:
+      </p>
+      <img id="qr-img" src="<%= waQR %>" alt="QR Code" style="width:220px;height:220px;border-radius:12px;border:1px solid var(--border)"/>
+    </div>
+    <% } %>
+
+    <% if (waStatus === 'ready') { %>
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:.85rem 1rem;font-size:.88rem;color:#15803d;margin-bottom:1.25rem">
+      <i class="fa-solid fa-circle-check"></i>
+      Las notificaciones automáticas están activas. Cada cambio de estado enviará un mensaje al cliente.
+    </div>
+    <% } %>
+
+    <!-- Acciones -->
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+      <% if (waStatus === 'disconnected') { %>
+      <form method="POST" action="/admin/whatsapp/iniciar">
+        <button class="button strong" type="submit">
+          <i class="fa-brands fa-whatsapp"></i> Conectar WhatsApp
+        </button>
+      </form>
+      <% } %>
+      <% if (waStatus === 'ready') { %>
+      <form method="POST" action="/admin/whatsapp/desconectar">
+        <button class="button" type="submit">
+          <i class="fa-solid fa-plug-circle-xmark"></i> Desconectar
+        </button>
+      </form>
+      <% } %>
+    </div>
+
+  </div>
+
+  <div class="panel" style="font-size:.85rem;color:var(--muted)">
+    <strong style="color:var(--ink)">¿Cómo funciona?</strong>
+    <ul style="margin-top:.5rem;padding-left:1.2rem;line-height:1.9">
+      <li>Al conectar, se mostrará un código QR que debes escanear con WhatsApp en tu teléfono.</li>
+      <li>Una vez vinculado, cada vez que cambies el estado de un equipo el cliente recibirá un mensaje automático.</li>
+      <li>La sesión queda guardada; no tendrás que escanear de nuevo salvo que cierres sesión desde el teléfono.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+// Auto-refresh QR via SSE si estamos en estado "qr"
+(function(){
+  var status = '<%= waStatus %>';
+  if (status !== 'qr' && status !== 'connecting') return;
+
+  var es = new EventSource('/admin/whatsapp/qr-stream');
+  es.onmessage = function(e){
+    try {
+      var d = JSON.parse(e.data);
+      if (d.qr) {
+        var img = document.getElementById('qr-img');
+        if (!img) {
+          // Si el QR aún no estaba en la página, recargamos
+          location.reload();
+        } else {
+          img.src = d.qr;
+        }
+      }
+    } catch(_){}
+  };
+  // Recargar la página cada 30 s para actualizar el estado
+  setTimeout(function(){ location.reload(); }, 30000);
+})();
+</script>
+
+<%- include("../partials/footer") %>

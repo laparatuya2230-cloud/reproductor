@@ -1,0 +1,141 @@
+<%- include("../partials/header") %>
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Reportes</div>
+    <div class="page-sub">Exporta datos operativos en Excel y CSV.</div>
+  </div>
+</div>
+
+<% const currentYear = new Date().getFullYear(); %>
+<% const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']; %>
+
+<div class="reports-grid">
+  <div class="panel report-card">
+    <div class="report-icon" style="background:#fff0f1;color:#cc0014">
+      <i class="fa-solid fa-file-invoice-dollar"></i>
+    </div>
+    <div class="report-info">
+      <h2>Ingresos / Facturas</h2>
+      <p>Facturas del periodo para contabilidad.</p>
+    </div>
+    <form class="report-form" method="GET" action="/admin/reportes/ingresos.xlsx">
+      <div class="report-filters">
+        <select name="year">
+          <% (years.length ? years : [String(currentYear)]).forEach(y => { %>
+            <option value="<%= y %>" <%= y == currentYear ? 'selected' : '' %>><%= y %></option>
+          <% }) %>
+        </select>
+        <select name="month">
+          <option value="">Todo el año</option>
+          <% months.forEach((m, i) => { %>
+            <option value="<%= i+1 %>"><%= m %></option>
+          <% }) %>
+        </select>
+      </div>
+      <button class="button strong report-btn" type="submit">
+        <i class="fa-solid fa-download"></i> Descargar Excel
+      </button>
+      <button class="button report-btn" type="submit" formaction="/admin/reportes/ingresos.csv">
+        <i class="fa-solid fa-file-csv"></i> Descargar CSV
+      </button>
+    </form>
+  </div>
+
+  <div class="panel report-card">
+    <div class="report-icon" style="background:#f0fdf4;color:#16a34a">
+      <i class="fa-solid fa-cash-register"></i>
+    </div>
+    <div class="report-info">
+      <h2>Sesiones de Caja</h2>
+      <p>Aperturas y cierres de caja.</p>
+    </div>
+    <form class="report-form" method="GET" action="/admin/reportes/caja.xlsx">
+      <div class="report-filters">
+        <select name="year">
+          <% (years.length ? years : [String(currentYear)]).forEach(y => { %>
+            <option value="<%= y %>" <%= y == currentYear ? 'selected' : '' %>><%= y %></option>
+          <% }) %>
+        </select>
+      </div>
+      <button class="button strong report-btn" type="submit">
+        <i class="fa-solid fa-download"></i> Descargar Excel
+      </button>
+      <a class="button report-btn" href="/admin/reportes/caja.csv">
+        <i class="fa-solid fa-file-csv"></i> Descargar CSV
+      </a>
+    </form>
+  </div>
+
+  <div class="panel report-card">
+    <div class="report-icon" style="background:#eff6ff;color:#2563eb">
+      <i class="fa-solid fa-boxes-stacked"></i>
+    </div>
+    <div class="report-info">
+      <h2>Inventario</h2>
+      <p>Stock actual con costos y precios.</p>
+    </div>
+    <form class="report-form" method="GET" action="/admin/reportes/inventario.xlsx">
+      <div class="report-filters"></div>
+      <button class="button strong report-btn" type="submit">
+        <i class="fa-solid fa-download"></i> Descargar Excel
+      </button>
+      <a class="button report-btn" href="/admin/reportes/inventario.csv">
+        <i class="fa-solid fa-file-csv"></i> Descargar CSV
+      </a>
+    </form>
+  </div>
+
+  <div class="panel report-card">
+    <div class="report-icon" style="background:#faf5ff;color:#7c3aed">
+      <i class="fa-solid fa-screwdriver-wrench"></i>
+    </div>
+    <div class="report-info">
+      <h2>Equipos</h2>
+      <p>Listado de equipos, estados y fechas.</p>
+    </div>
+    <form class="report-form" method="GET" action="/admin/reportes/equipos.xlsx">
+      <div class="report-filters"></div>
+      <button class="button strong report-btn" type="submit">
+        <i class="fa-solid fa-download"></i> Descargar Excel
+      </button>
+      <a class="button report-btn" href="/admin/reportes/equipos.csv">
+        <i class="fa-solid fa-file-csv"></i> Descargar CSV
+      </a>
+    </form>
+  </div>
+
+  <div class="panel report-card">
+    <div class="report-icon" style="background:#fff7ed;color:#ea580c">
+      <i class="fa-solid fa-list-check"></i>
+    </div>
+    <div class="report-info">
+      <h2>Historial de Estados</h2>
+      <p>Cambios de estado por equipo.</p>
+    </div>
+    <div class="report-form">
+      <a class="button report-btn" href="/admin/reportes/estados.csv">
+        <i class="fa-solid fa-file-csv"></i> Descargar CSV
+      </a>
+    </div>
+  </div>
+
+  <% if (currentUser && currentUser.role === "admin") { %>
+  <div class="panel report-card">
+    <div class="report-icon" style="background:#f3e8ff;color:#9333ea">
+      <i class="fa-solid fa-shield-halved"></i>
+    </div>
+    <div class="report-info">
+      <h2>Auditoría</h2>
+      <p>Registro de acciones del sistema.</p>
+    </div>
+    <div class="report-form">
+      <a class="button report-btn" href="/admin/reportes/auditoria.csv">
+        <i class="fa-solid fa-file-csv"></i> Descargar CSV
+      </a>
+    </div>
+  </div>
+  <% } %>
+</div>
+
+<%- include("../partials/footer") %>

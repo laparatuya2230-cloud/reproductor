@@ -1,0 +1,221 @@
+<%- include("../partials/header") %>
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Backup y Restauracion</div>
+    <div class="page-sub">Respalda todo el sistema local o restaura desde un archivo .srbackup.</div>
+  </div>
+</div>
+
+<% if (error) { %>
+  <div class="alert"><%= error %></div>
+<% } %>
+<% if (success) { %>
+  <div class="alert success"><%= success %></div>
+<% } %>
+
+<div class="split-panel">
+  <article class="panel">
+    <h2>Backup automatico</h2>
+    <p style="margin-top:0;color:var(--muted)">
+      Programa backups diarios o semanales y define cuantas copias conservar.
+    </p>
+    <form class="form-grid" method="POST" action="/admin/backup/config" style="margin-bottom:14px">
+      <label style="display:flex;align-items:center;gap:8px">
+        <input type="checkbox" name="enabled" <%= backupConfig.enabled ? "checked" : "" %> />
+        Activar backup automatico
+      </label>
+      <label>
+        Frecuencia
+        <select name="frequency">
+          <option value="daily" <%= backupConfig.frequency === "daily" ? "selected" : "" %>>Diario</option>
+          <option value="weekly" <%= backupConfig.frequency === "weekly" ? "selected" : "" %>>Semanal</option>
+        </select>
+      </label>
+      <label>
+        Hora (0-23)
+        <input type="number" name="hour" min="0" max="23" value="<%= backupConfig.hour %>" />
+      </label>
+      <label>
+        Minuto (0-59)
+        <input type="number" name="minute" min="0" max="59" value="<%= backupConfig.minute %>" />
+      </label>
+      <label>
+        Dia semana (0=Dom, 1=Lun ... 6=Sab)
+        <input type="number" name="weekday" min="0" max="6" value="<%= backupConfig.weekday %>" />
+      </label>
+      <label>
+        Retencion (copias)
+        <input type="number" name="retention" min="1" max="365" value="<%= backupConfig.retention %>" />
+      </label>
+      <button class="button strong" type="submit">Guardar configuracion</button>
+    </form>
+
+    <h2 style="margin-top:12px">Crear backup completo</h2>
+    <p style="margin-top:0;color:var(--muted)">
+      Incluye base de datos, usuarios, configuraciones, sesion de WhatsApp y demas datos locales.
+    </p>
+
+    <form class="form-grid" method="POST" action="/admin/backup/crear" data-progress="backup" data-progress-label="Creando backup completo">
+      <label>
+        Guardar en (opcional)
+        <input
+          type="text"
+          name="destination_dir"
+          placeholder="Dejar vacio para usar carpeta local de backups"
+        />
+      </label>
+      <div class="mono-line">Carpeta local: <span class="mono-inline"><%= backupDir %></span></div>
+      <button class="button strong" type="submit">Crear backup ahora</button>
+    </form>
+  </article>
+
+  <article class="panel">
+    <h2>Verificar backup</h2>
+    <p style="margin-top:0;color:var(--muted)">
+      Comprueba integridad (manifest + checksum) antes de depender de un backup.
+    </p>
+    <form class="form-grid" method="POST" action="/admin/backup/verificar">
+      <label>
+        Ruta del archivo .srbackup
+        <input
+          type="text"
+          name="backup_path"
+          placeholder="E:\\respaldos\\sr_backup_20260513_100000.srbackup"
+          required
+        />
+      </label>
+      <button class="button" type="submit">Verificar archivo</button>
+    </form>
+
+    <% if (verifyResult) { %>
+      <div class="verify-box">
+        <div><strong>Archivo:</strong> <span class="mono-inline"><%= verifyResult.filePath %></span></div>
+        <div><strong>Version:</strong> <%= verifyResult.version %></div>
+        <div><strong>Fecha backup:</strong> <%= verifyResult.createdAt %></div>
+        <div><strong>Archivos:</strong> <%= verifyResult.fileCount %></div>
+        <div><strong>Peso total:</strong> <%= verifyResult.totalBytes %></div>
+      </div>
+    <% } %>
+  </article>
+</div>
+
+<section class="panel">
+  <h2>Restaurar backup</h2>
+  <p style="margin-top:0;color:var(--muted)">
+    Esta accion reemplaza todos los datos locales del sistema actual por los del backup seleccionado.
+    Antes de restaurar, el sistema crea un respaldo de seguridad automatico.
+  </p>
+  <form class="form-grid" method="POST" action="/admin/backup/restaurar" data-progress="backup" data-progress-label="Restaurando backup">
+    <label>
+      Ruta del archivo .srbackup
+      <input
+        type="text"
+        name="backup_path"
+        placeholder="E:\\respaldos\\sr_backup_20260513_100000.srbackup"
+        required
+      />
+    </label>
+    <label>
+      Confirmacion
+      <input
+        type="text"
+        name="confirm_restore"
+        placeholder="Escribe SI"
+        required
+      />
+    </label>
+    <button class="button danger" type="submit">Restaurar ahora</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Backups locales recientes</h2>
+  <p style="margin-top:0;color:var(--muted)">
+    Datos del sistema: <span class="mono-inline"><%= dataDir %></span>
+  </p>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Archivo</th>
+          <th>Tamano</th>
+          <th>Fecha</th>
+          <th>Ruta</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!backupFiles.length) { %>
+          <tr>
+            <td colspan="4">Aun no hay backups en la carpeta local.</td>
+          </tr>
+        <% } %>
+        <% backupFiles.forEach(file => { %>
+          <tr>
+            <td><strong><%= file.name %></strong></td>
+            <td><%= file.sizeLabel %></td>
+            <td><%= new Date(file.modifiedAt).toLocaleString("es-DO") %></td>
+            <td><span class="mono-inline"><%= file.absPath %></span></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="progress-overlay" id="backupProgressOverlay" aria-hidden="true">
+  <div class="progress-card">
+    <h3 class="progress-title" id="backupProgressTitle">Procesando respaldo</h3>
+    <p class="progress-sub">No cierres esta ventana hasta que el proceso termine.</p>
+    <div class="progress-track">
+      <div class="progress-fill" id="backupProgressFill"></div>
+    </div>
+    <div class="progress-meta">
+      <span>Progreso estimado</span>
+      <strong id="backupProgressPercent">1%</strong>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var overlay = document.getElementById("backupProgressOverlay");
+    var fill = document.getElementById("backupProgressFill");
+    var percentText = document.getElementById("backupProgressPercent");
+    var title = document.getElementById("backupProgressTitle");
+    if (!overlay || !fill || !percentText || !title) return;
+
+    var timer = null;
+
+    function setProgress(value) {
+      var safe = Math.max(1, Math.min(99, Number(value) || 1));
+      fill.style.width = safe.toFixed(0) + "%";
+      percentText.textContent = safe.toFixed(0) + "%";
+    }
+
+    function startProgress(label) {
+      if (timer) clearInterval(timer);
+      title.textContent = label || "Procesando respaldo";
+      overlay.classList.add("show");
+      overlay.setAttribute("aria-hidden", "false");
+
+      var progress = 1;
+      setProgress(progress);
+      timer = setInterval(function () {
+        var step = progress < 70 ? (Math.random() * 6 + 2) : progress < 90 ? (Math.random() * 1.8 + 0.4) : 0.2;
+        progress = Math.min(99, progress + step);
+        setProgress(progress);
+      }, 420);
+    }
+
+    document.querySelectorAll("form[data-progress='backup']").forEach(function (form) {
+      form.addEventListener("submit", function () {
+        var label = form.getAttribute("data-progress-label");
+        startProgress(label);
+      });
+    });
+  })();
+</script>
+
+<%- include("../partials/footer") %>

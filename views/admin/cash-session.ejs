@@ -1,0 +1,146 @@
+<%- include("../partials/header") %>
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Apertura y Cierre de Caja</div>
+    <div class="page-sub">Control diario de efectivo para aperturar, entregar equipos y hacer cierre.</div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Fecha de trabajo: <%= todayDate %></h2>
+
+  <% if (error) { %>
+    <div class="alert"><%= error %></div>
+  <% } %>
+  <% if (message) { %>
+    <div class="alert success"><%= message %></div>
+  <% } %>
+
+  <%# ── CASO 1: No hay sesion abierta hoy ── %>
+  <% if (!session) { %>
+
+    <%# Si hubo una sesion cerrada hoy, mostrar resumen antes del formulario %>
+    <% if (lastSession && lastSession.status === 'cerrada') { %>
+      <div class="alert success" style="margin-bottom:1rem">
+        <strong>Caja anterior cerrada.</strong>
+        Empleado: <%= lastSession.employee_name %> &nbsp;|&nbsp;
+        Cierre: <%= formatDate(lastSession.closed_at) %> &nbsp;|&nbsp;
+        Diferencia: <%= formatMoney(lastSession.difference) %>
+      </div>
+    <% } %>
+
+    <form class="form-grid" method="POST" action="/admin/caja/apertura">
+      <label>
+        Nombre del empleado *
+        <input type="text" name="employee_name" required />
+      </label>
+      <label>
+        Monto de apertura *
+        <input type="number" step="0.01" min="0" name="opening_amount" value="0" required />
+      </label>
+      <button class="button strong full" type="submit">Abrir caja</button>
+    </form>
+
+  <%# ── CASO 2: Hay sesion abierta ── %>
+  <% } else { %>
+    <div class="split-panel">
+      <article class="panel">
+        <h2>Resumen de Caja</h2>
+        <p><strong>Empleado:</strong> <%= session.employee_name %></p>
+        <p><strong>Apertura:</strong> <%= formatMoney(openingAmount) %></p>
+        <p><strong>Facturas entregadas hoy:</strong> <%= deliveredInvoices.length %></p>
+        <p><strong>Total facturado hoy:</strong> <%= formatMoney(invoicesTotal) %></p>
+        <p><strong>Cierre esperado:</strong> <%= formatMoney(expectedClosing) %></p>
+        <p><strong>Estado:</strong>
+          <span class="state-badge <%= session.status === 'cerrada' ? 'done' : '' %>"><%= session.status %></span>
+        </p>
+
+        <% if (session.status === "cerrada") { %>
+          <hr style="margin:.6rem 0;border-color:#e5e9f0" />
+          <p><strong>Monto contado al cierre:</strong> <%= formatMoney(session.counted_amount) %></p>
+          <p><strong>Diferencia:</strong> <%= formatMoney(session.difference) %></p>
+          <p><strong>Cerrada:</strong> <%= formatDate(session.closed_at) %></p>
+          <% if (session.notes) { %>
+            <p><strong>Notas:</strong> <%= session.notes %></p>
+          <% } %>
+        <% } %>
+      </article>
+
+      <% if (session.status === "abierta") { %>
+        <article class="panel">
+          <h2>Cerrar Caja</h2>
+          <form class="form-grid" method="POST" action="/admin/caja/cierre">
+            <label class="full">
+              Monto contado fisicamente *
+              <input type="number" step="0.01" min="0" name="counted_amount" required />
+            </label>
+            <label class="full">
+              Notas de cierre (opcional)
+              <textarea name="notes" rows="3" placeholder="Ejemplo: faltante por error de cambio"></textarea>
+            </label>
+            <button class="button strong full" type="submit">Cerrar caja</button>
+          </form>
+        </article>
+      <% } %>
+    </div>
+
+    <section class="panel">
+      <h2>Equipos entregados hoy</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Factura</th>
+              <th>Equipo</th>
+              <th>Cliente</th>
+              <th>Total</th>
+              <th>Recibido</th>
+              <th>Cambio</th>
+              <th>Hora entrega</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (deliveredInvoices.length === 0) { %>
+              <tr>
+                <td colspan="7">Aun no hay equipos entregados en la caja de hoy.</td>
+              </tr>
+            <% } %>
+            <% deliveredInvoices.forEach((item) => { %>
+              <tr>
+                <td><strong><%= item.invoice_number %></strong></td>
+                <td><%= item.equipment_code %> | <%= item.equipment_name %></td>
+                <td><%= item.customer_name %></td>
+                <td><%= formatMoney(item.total) %></td>
+                <td><%= item.cash_received != null ? formatMoney(item.cash_received) : "-" %></td>
+                <td><%= item.change_given != null ? formatMoney(item.change_given) : "-" %></td>
+                <td><%= formatDate(item.delivered_at) %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <%# ── Si la caja esta cerrada, mostrar formulario de nueva apertura ── %>
+    <% if (session.status === "cerrada") { %>
+      <div class="panel" style="margin-top:.5rem">
+        <h2>Abrir Nueva Caja</h2>
+        <p style="color:#666;margin-bottom:.8rem">La caja anterior fue cerrada. Puedes abrir una nueva caja para continuar operando hoy.</p>
+        <form class="form-grid" method="POST" action="/admin/caja/apertura">
+          <label>
+            Nombre del empleado *
+            <input type="text" name="employee_name" required />
+          </label>
+          <label>
+            Monto de apertura *
+            <input type="number" step="0.01" min="0" name="opening_amount" value="0" required />
+          </label>
+          <button class="button strong full" type="submit">Abrir nueva caja</button>
+        </form>
+      </div>
+    <% } %>
+  <% } %>
+</div>
+
+<%- include("../partials/footer") %>

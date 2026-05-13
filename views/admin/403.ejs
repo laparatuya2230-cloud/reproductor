@@ -1,0 +1,10 @@
+<%- include("../partials/header") %>
+<section class="hero" style="text-align:center;">
+  <div>
+    <h1 style="font-size:3rem;color:#cc0014;">403</h1>
+    <h2>Acceso denegado</h2>
+    <p style="margin-top:8px;color:#888;">Tu usuario (<strong><%= currentUser.role %></strong>) no tiene permiso para acceder a esta sección.</p>
+    <a href="/admin/dashboard" class="button strong" style="display:inline-block;margin-top:20px;">Volver al panel</a>
+  </div>
+</section>
+<%- include("../partials/footer") %>

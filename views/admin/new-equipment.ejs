@@ -1,0 +1,70 @@
+<%- include("../partials/header") %>
+
+<section class="hero">
+  <div>
+    <h1>Registrar Nuevo Equipo</h1>
+    <p>Llena los datos del cliente y genera el ticket para imprimir y pegar al equipo.</p>
+  </div>
+</section>
+
+<section class="split-panel">
+  <article class="panel">
+    <h2>Formulario</h2>
+    <% if (error) { %>
+      <div class="alert"><%= error %></div>
+    <% } %>
+    <form class="form-grid" method="POST" action="/admin/equipos/nuevo">
+      <label>
+        Codigo unico (opcional)
+        <input type="text" name="code" placeholder="<%= generatedCode %>" value="<%= formData.code || '' %>" />
+      </label>
+      <label>
+        Nombre del cliente *
+        <input type="text" name="customer_name" value="<%= formData.customer_name || '' %>" required />
+      </label>
+      <label>
+        Numero / Telefono *
+        <input type="text" name="customer_phone" value="<%= formData.customer_phone || '' %>" required />
+      </label>
+      <label>
+        Nombre del equipo *
+        <input type="text" name="equipment_name" value="<%= formData.equipment_name || '' %>" required />
+      </label>
+      <label>
+        Estado inicial *
+        <select name="status" required>
+          <% workflowStates.forEach((state) => { %>
+            <option value="<%= state %>" <%= (formData.status || "esperando su turno") === state ? "selected" : "" %>>
+              <%= state %>
+            </option>
+          <% }) %>
+        </select>
+      </label>
+      <label>
+        Fecha y hora de recepcion *
+        <input type="datetime-local" name="received_at" value="<%= formData.received_at || '' %>" required />
+      </label>
+      <label class="full">
+        Detalles de falla (opcional)
+        <textarea name="issue_details" rows="4"><%= formData.issue_details || '' %></textarea>
+      </label>
+      <button class="button strong full" type="submit">Guardar y generar ticket</button>
+    </form>
+  </article>
+
+  <article class="panel ticket-preview">
+    <h2>Vista previa de ticket</h2>
+    <div class="preview-card">
+      <div class="preview-header">SANTIAGO REPARACIONES</div>
+      <div class="preview-body">
+        <p><strong>Nombre:</strong> <%= formData.customer_name || "________________" %></p>
+        <p><strong>Numero:</strong> <%= formData.customer_phone || "________________" %></p>
+        <p><strong>Equipo:</strong> <%= formData.equipment_name || "________________" %></p>
+        <p><strong>Codigo:</strong> <%= formData.code || generatedCode %></p>
+        <p><strong>Recibido:</strong> <%= formData.received_at ? new Date(formData.received_at).toLocaleString("es-DO") : "________________" %></p>
+      </div>
+    </div>
+  </article>
+</section>
+
+<%- include("../partials/footer") %>

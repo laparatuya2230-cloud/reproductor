@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> | Santiago Reparaciones</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Teko:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <script>
+    (function(){
+      var t = localStorage.getItem('sr-theme');
+      if (t === 'dark') document.documentElement.setAttribute('data-theme','dark');
+    })();
+  </script>
+  <body class="app-body">
+
+<aside class="sidebar">
+  <div class="sidebar-logo"><span>SR</span></div>
+
+  <div class="sidebar-nav">
+    <a class="nav-item <%= active === 'dashboard' ? 'active' : '' %>" href="/admin/dashboard">
+      <i class="fa-solid fa-house"></i><span class="label">Panel</span>
+    </a>
+
+    <a class="nav-item <%= active === 'new-equipment' ? 'active' : '' %>" href="/admin/equipos/nuevo">
+      <i class="fa-solid fa-circle-plus"></i><span class="label">Registrar Equipo</span>
+    </a>
+
+    <div class="nav-sep"></div>
+
+    <a class="nav-item <%= active === 'statuses' ? 'active' : '' %>" href="/admin/estados">
+      <i class="fa-solid fa-list-check"></i><span class="label">Estados</span>
+    </a>
+    <a class="nav-item <%= active === 'equipments' ? 'active' : '' %>" href="/admin/equipos">
+      <i class="fa-solid fa-screwdriver-wrench"></i><span class="label">Equipos</span>
+    </a>
+    <a class="nav-item <%= active === 'inventory' ? 'active' : '' %>" href="/admin/inventario">
+      <i class="fa-solid fa-boxes-stacked"></i><span class="label">Inventario</span>
+    </a>
+
+    <div class="nav-sep"></div>
+
+    <a class="nav-item <%= active === 'quotes' ? 'active' : '' %>" href="/admin/cotizaciones">
+      <i class="fa-solid fa-file-lines"></i><span class="label">Cotizaciones</span>
+    </a>
+    <a class="nav-item <%= active === 'invoices' ? 'active' : '' %>" href="/admin/facturas">
+      <i class="fa-solid fa-receipt"></i><span class="label">Facturas</span>
+    </a>
+    <a class="nav-item <%= active === 'cash' ? 'active' : '' %>" href="/admin/caja">
+      <i class="fa-solid fa-cash-register"></i><span class="label">Apertura/Cierre</span>
+    </a>
+
+    <div class="nav-sep"></div>
+
+    <a class="nav-item <%= active === 'stale' ? 'active' : '' %>" href="/admin/sin-movimiento">
+      <i class="fa-solid fa-hourglass-half"></i><span class="label">Sin movimiento</span>
+    </a>
+
+    <a class="nav-item <%= active === 'whatsapp' ? 'active' : '' %>" href="/admin/whatsapp">
+      <i class="fa-brands fa-whatsapp"></i><span class="label">WhatsApp</span>
+    </a>
+
+    <a class="nav-item <%= active === 'reports' ? 'active' : '' %>" href="/admin/reportes">
+      <i class="fa-solid fa-chart-bar"></i><span class="label">Reportes</span>
+    </a>
+
+    <% if (currentUser && currentUser.role === 'admin') { %>
+    <a class="nav-item <%= active === 'backup' ? 'active' : '' %>" href="/admin/backup">
+      <i class="fa-solid fa-floppy-disk"></i><span class="label">Backup</span>
+    </a>
+    <a class="nav-item <%= active === 'users' ? 'active' : '' %>" href="/admin/usuarios">
+      <i class="fa-solid fa-users-gear"></i><span class="label">Usuarios</span>
+    </a>
+    <% } %>
+  </div>
+
+  <div class="sidebar-bottom">
+    <% if (currentUser) { %>
+    <div class="sidebar-user">
+      <div class="avatar"><%= currentUser.full_name ? currentUser.full_name[0].toUpperCase() : currentUser.username[0].toUpperCase() %></div>
+      <div class="sidebar-user-info">
+        <span class="sidebar-username"><%= currentUser.full_name || currentUser.username %></span>
+        <span class="sidebar-role"><%= currentUser.role %></span>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-brand">SANTIAGO REPARACIONES</span>
+      <div class="topbar-sep"></div>
+      <span class="topbar-page"><%= title %></span>
+    </div>
+    <div class="topbar-right">
+      <% const _now = new Date(); %>
+      <span class="topbar-date">
+        <i class="fa-regular fa-calendar"></i>
+        <%= _now.toLocaleDateString('es-DO', {day:'numeric', month:'long', year:'numeric'}) %>
+      </span>
+      <a class="topbar-btn" href="/admin/equipos/nuevo">
+        <i class="fa-solid fa-plus"></i> Registrar equipo
+      </a>
+      <button class="theme-toggle" id="themeToggle" title="Cambiar modo claro/oscuro">
+        <i class="fa-solid fa-moon" id="themeIcon"></i>
+      </button>
+      <% if (currentUser) { %>
+      <form method="POST" action="/admin/logout" style="margin:0">
+        <button class="topbar-btn topbar-logout" type="submit" title="Cerrar sesión">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </form>
+      <% } %>
+    </div>
+  </div>
+  <div class="content">
+    <div class="page-shell">

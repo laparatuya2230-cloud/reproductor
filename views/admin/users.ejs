@@ -1,0 +1,109 @@
+<%- include("../partials/header") %>
+
+<section class="hero">
+  <div>
+    <h1>Gestion de Usuarios</h1>
+    <p>Agrega usuarios, roles y desbloquea accesos cuando sea necesario.</p>
+  </div>
+</section>
+
+<section class="split-panel">
+  <article class="panel">
+    <h2>Nuevo usuario</h2>
+    <% if (error)   { %><div class="alert"><%= error %></div><% } %>
+    <% if (success) { %><div class="alert success"><%= success %></div><% } %>
+    <form class="form-grid" method="POST" action="/admin/usuarios/nuevo">
+      <label>
+        Nombre completo
+        <input type="text" name="full_name" required />
+      </label>
+      <label>
+        Usuario (login) *
+        <input type="text" name="username" required autocomplete="off" />
+      </label>
+      <label>
+        Contrasena *
+        <input type="password" name="password" required autocomplete="new-password" minlength="4" />
+      </label>
+      <label>
+        Rol *
+        <select name="role" required>
+          <option value="admin">Administrador</option>
+          <option value="empleado" selected>Empleado</option>
+          <option value="recepcion">Recepcion (legacy)</option>
+        </select>
+      </label>
+      <button class="button strong full" type="submit">Crear usuario</button>
+    </form>
+  </article>
+
+  <article class="panel">
+    <h2>Usuarios registrados</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Nombre</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Seguridad</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach(u => { %>
+        <% const lockActive = !!(u.locked_until && new Date(u.locked_until).getTime() > Date.now()); %>
+        <tr class="<%= u.is_active ? '' : 'row-muted' %>">
+          <td><strong><%= u.username %></strong></td>
+          <td><%= u.full_name || '-' %></td>
+          <td><span class="badge badge-<%= u.role %>"><%= u.role %></span></td>
+          <td>
+            <% if (lockActive) { %>
+              Bloqueado
+            <% } else { %>
+              <%= u.is_active ? 'Activo' : 'Inactivo' %>
+            <% } %>
+          </td>
+          <td>
+            Intentos fallidos: <strong><%= Number(u.failed_count || 0) %></strong>
+            <% if (lockActive) { %>
+              <div>Hasta: <%= new Date(u.locked_until).toLocaleString("es-DO") %></div>
+            <% } %>
+          </td>
+          <td class="actions-cell">
+            <form method="POST" action="/admin/usuarios/<%= u.id %>/password" style="display:inline" onsubmit="return confirmPass(this)">
+              <input type="hidden" name="password" id="pw_<%= u.id %>" />
+              <button type="submit" class="button small">Cambiar clave</button>
+            </form>
+            <% if (u.role !== 'admin') { %>
+            <form method="POST" action="/admin/usuarios/<%= u.id %>/toggle" style="display:inline">
+              <button type="submit" class="button small <%= u.is_active ? 'danger' : '' %>">
+                <%= u.is_active ? 'Desactivar' : 'Activar' %>
+              </button>
+            </form>
+            <% } %>
+            <% if (lockActive) { %>
+            <form method="POST" action="/admin/usuarios/<%= u.id %>/desbloquear" style="display:inline">
+              <button type="submit" class="button small">Desbloquear</button>
+            </form>
+            <% } %>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </article>
+</section>
+
+<script>
+function confirmPass(form) {
+  var id = form.querySelector('input[type=hidden]').id;
+  var pw = prompt('Nueva contrasena (minimo 4 caracteres):');
+  if (!pw || pw.length < 4) return false;
+  document.getElementById(id).value = pw;
+  return true;
+}
+</script>
+
+<%- include("../partials/footer") %>
+
